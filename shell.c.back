@@ -1,3 +1,7 @@
+/**
+Author: Nicholas Dill
+This is a shell which implents some of the basic features of the BASH shell, namely command piping and output redirection.
+*/
 #include <stdio.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -40,8 +44,11 @@ int main() {
 					fprintf(stderr, "destPipe failed\n");
 					exit(1);
 				}
-			} else if (cmd->outfile) {
+			} 
+
+			if (cmd->outfile) {
 				outfile = open(cmd->outfile, O_WRONLY | O_CREAT, 0644);
+				if(outfile < 0){printf("Failed to open file.\n");}
 			}
 
 			int rc = fork();
@@ -62,7 +69,8 @@ int main() {
 					dup(destPipe[1]);
 					close(destPipe[0]);
 					close(destPipe[1]);
-				} else if (outfile) {
+				}
+				if (outfile) {
 					close(STDOUT_FILENO);
 					dup(outfile);
 					close(outfile);
@@ -74,7 +82,9 @@ int main() {
 					myargs[i] = cmd->argv[i];
 				}
 				myargs[cmd->argc] = NULL;
-				execvp(myargs[0], myargs);
+				int rc =  execvp(myargs[0], myargs);
+				if( rc < 0){printf("Command not found.\n");}
+				exit(1);
 			}	
 
 
@@ -86,6 +96,7 @@ int main() {
 			destPipe[1] = 0;
 
 			if (outfile != 0) { close(outfile); }
+			outfile = 0;
 
             cmd = cmd->next;
         }
@@ -95,7 +106,7 @@ int main() {
 
 		parse_end(r);
 		free(line);
-		wait(NULL);
+		while(wait(NULL)>0){;}
     }
 	return 0;
 }
