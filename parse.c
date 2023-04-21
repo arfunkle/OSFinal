@@ -98,6 +98,7 @@ typedef enum {
       TOKEN_EOF,            ///< end-of-file
       TOKEN_PIPE,           ///< pipeline operator, i.e., '|'
       TOKEN_OUT_REDIRECT,   ///< output redirection, i.e., '<'
+      TOKEN_IN_REDIRECT,    ///< input redirection, i.e., '>'
       TOKEN_WORD,           ///< a WORD
 } token_type_t;
 
@@ -189,11 +190,28 @@ int parse_command(parser_t *p) {
         if (t.type == TOKEN_OUT_REDIRECT) {
             token_t t = get_token(p);
             if (t.type == TOKEN_WORD) {
-                add_outfile(p, t);
-                return 1;
+	      add_outfile(p, t);
+	      token_t t = get_token(p);
+		if (t.type == TOKEN_IN_REDIRECT) {
+		  token_t t = get_token(p);
+		  if (t.type == TOKEN_WORD) {
+		    add_infile(p, t);
+		    return 1;
+		  }
+		  return 0;
+		}
+		putback_token(p, t);
+		return 1;
             }
             return 0;
-        }
+        } else if (t.type == TOKEN_IN_REDIRECT) {
+	    token_t t = get_token(p);
+	    if (t.type == TOKEN_WORD) {
+	        add_infile(p, t);
+	        return 1;
+	    }
+	    return 0;
+	}
         putback_token(p, t);
         return 1;
     }
@@ -255,6 +273,8 @@ token_t get_token(parser_t *p) {
         t.type = TOKEN_PIPE;
     else if (strncmp(t.begin, ">", end - t.begin) == 0)
         t.type = TOKEN_OUT_REDIRECT;
+    else if (strncmp(t.begin, "<", end - t.begin) == 0)
+        t.type = TOKEN_IN_REDIRECT;
     else
         t.type = TOKEN_WORD;
 
@@ -289,6 +309,7 @@ void add_command(parser_t *p) {
     c->capacity = 1;
     c->next = NULL;
     c->outfile = NULL;
+    c->infile = NULL;
     if (p->current_command == NULL) p->root->first_command = c;
     else                            p->current_command->next = c;
     p->current_command = c;
@@ -320,6 +341,10 @@ void check_capacity(parser_t *p) {
 
 void add_outfile(parser_t *p, token_t t) {
     p->current_command->outfile = t.begin;
+}
+
+void add_infile(parser_t *p, token_t t) {
+    p->current_command->infile = t.begin;
 }
 
 void free_command(struct command *c) {

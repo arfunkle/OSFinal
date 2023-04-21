@@ -89,5 +89,6 @@ typedef struct command {
     int argc;               ///< actual number of WORDs in argv
     int capacity;           ///< number of WORDs that can fit in argv
     char *outfile;          ///< if non-NULL, out redirect target
+    char *infile;           ///< if non-NULL, in redirect target 
     struct command *next;   ///< if non-NULL, next command in pipeline
 } command_t;
