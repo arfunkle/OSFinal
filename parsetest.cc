@@ -97,6 +97,40 @@ go_bandit([]() {
                         AssertThat(c->outfile, Equals("out"));
                         AssertThat(c->next, IsNull());
                     });
+		it("parsing a line with an input redirection", [&]() {
+                        char line[] = "one < in";
+                        root_t *r = parse(line);
+                        AssertThat(r, !IsNull());
+                        AssertThat(r->valid, !Equals(0));
+                        command_t *c = r->first_command;
+                        AssertThat(c, !IsNull());
+                        AssertThat(c->argv, !IsNull());
+                        AssertThat(c->argc, Equals(2));
+                        AssertThat(c->argv[0], !IsNull());
+                        AssertThat(c->argv[0], Equals("one"));
+                        AssertThat(c->argv[1], IsNull());
+                        AssertThat(c->infile, !IsNull());
+                        AssertThat(c->infile, Equals("in"));
+                        AssertThat(c->next, IsNull());
+                    });
+		it("parsing a line with an output redirection and input redirection", [&]() {
+                        char line[] = "one > out < in";
+                        root_t *r = parse(line);
+                        AssertThat(r, !IsNull());
+                        AssertThat(r->valid, !Equals(0));
+                        command_t *c = r->first_command;
+                        AssertThat(c, !IsNull());
+                        AssertThat(c->argv, !IsNull());
+                        AssertThat(c->argc, Equals(2));
+                        AssertThat(c->argv[0], !IsNull());
+                        AssertThat(c->argv[0], Equals("one"));
+                        AssertThat(c->argv[1], IsNull());
+			AssertThat(c->outfile, !IsNull());
+                        AssertThat(c->outfile, Equals("out"));
+                        AssertThat(c->infile, !IsNull());
+                        AssertThat(c->infile, Equals("in"));
+                        AssertThat(c->next, IsNull());
+                    });
                 it("parsing a line with a pipe", [&]() {
                         char line[] = "one two | three";
                         root_t *r = parse(line);

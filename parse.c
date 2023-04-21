@@ -135,6 +135,7 @@ void add_word_to_command(parser_t *p, token_t t);
 void add_NULL_to_command(parser_t *p);
 void check_capacity(parser_t *p);
 void add_outfile(parser_t *p, token_t t);
+void add_infile(parser_t *p, token_t t);
 void free_command(struct command *c);
 
 
