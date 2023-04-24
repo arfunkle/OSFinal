@@ -56,7 +56,7 @@ int main() {
 			}
 			
 			if (cmd->infile) {
-				infile = open(cmd->infile, O_WRONLY | O_CREAT, 0644);
+				infile = open(cmd->infile, O_RDONLY, 0644);
 				if(infile < 0){
 				  printf("Failed to open infile.\n");
 				  exit(1);
