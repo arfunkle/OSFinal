@@ -34,6 +34,7 @@ int main() {
 
 		// output file descriptor
 		int outfile = 0;
+		int infile = 0;
 
         while (cmd != NULL) {
 
@@ -48,7 +49,18 @@ int main() {
 
 			if (cmd->outfile) {
 				outfile = open(cmd->outfile, O_WRONLY | O_CREAT, 0644);
-				if(outfile < 0){printf("Failed to open file.\n");}
+				if(outfile < 0){
+				  printf("Failed to open outfile.\n");
+				  exit(1);
+				}
+			}
+			
+			if (cmd->infile) {
+				infile = open(cmd->infile, O_WRONLY | O_CREAT, 0644);
+				if(infile < 0){
+				  printf("Failed to open infile.\n");
+				  exit(1);
+				}
 			}
 
 			int rc = fork();
@@ -75,6 +87,11 @@ int main() {
 					dup(outfile);
 					close(outfile);
 				}
+				if (infile) {
+				        close(STDIN_FILENO);
+					dup(infile);
+					close(infile);
+				}
 
 				// start the program
 				char *myargs[cmd->argc + 1];
@@ -96,7 +113,9 @@ int main() {
 			destPipe[1] = 0;
 
 			if (outfile != 0) { close(outfile); }
+			if (infile != 0) { close(infile); }
 			outfile = 0;
+			infile = 0;
 
             cmd = cmd->next;
         }
