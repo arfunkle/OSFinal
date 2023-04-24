@@ -10,3 +10,11 @@ Requirements
 - GNU readline and history libraries, development files
 - C++14 for the test code
 - bandit (only for testing, git clone --recurse-submodules https://github.com/banditcpp/bandit)
+
+ git cmds
+
+- git add *
+- git commit -m ""
+- git pull
+- git push
+
