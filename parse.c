@@ -124,6 +124,9 @@ typedef struct {
 int parse_pipeline(parser_t *p);
 int parse_pipeline_prime(parser_t *p);
 int parse_command(parser_t *p);
+int parse_redirection(parser_t *p);
+int parse_redirection_prime(parser_t *p);
+int parse_redirection_double_prime(parser_t *p);
 int parse_simple_command(parser_t *p);
 int parse_simple_command_prime(parser_t *p);
 token_t get_token(parser_t *p);
@@ -187,36 +190,58 @@ int parse_pipeline_prime(parser_t *p) {
 int parse_command(parser_t *p) {
     add_command(p);
     if (parse_simple_command(p)) {
-        token_t t = get_token(p);
-        if (t.type == TOKEN_OUT_REDIRECT) {
-            token_t t = get_token(p);
-            if (t.type == TOKEN_WORD) {
-	      add_outfile(p, t);
-	      token_t t = get_token(p);
-		if (t.type == TOKEN_IN_REDIRECT) {
-		  token_t t = get_token(p);
-		  if (t.type == TOKEN_WORD) {
-		    add_infile(p, t);
-		    return 1;
-		  }
-		  return 0;
-		}
-		putback_token(p, t);
-		return 1;
-            }
-            return 0;
-        } else if (t.type == TOKEN_IN_REDIRECT) {
-	    token_t t = get_token(p);
-	    if (t.type == TOKEN_WORD) {
-	        add_infile(p, t);
-	        return 1;
-	    }
-	    return 0;
-	}
-        putback_token(p, t);
-        return 1;
+      return parse_redirection(p);
     }
     return 0;
+}
+
+int parse_redirection(parser_t *p) {
+  token_t t = get_token(p);
+  if (t.type == TOKEN_OUT_REDIRECT) {
+    token_t t = get_token(p);
+    if (t.type == TOKEN_WORD) {
+      add_outfile(p, t);
+      return parse_redirection_prime(p);
+    }
+    return 0;
+  } else if (t.type == TOKEN_IN_REDIRECT) {
+    token_t t = get_token(p);
+    if (t.type == TOKEN_WORD) {
+      add_infile(p, t);
+      return parse_redirection_double_prime(p);
+    }
+    return 0;
+  }
+  putback_token(p, t);
+  return 1;
+}
+
+int parse_redirection_prime(parser_t *p) {
+  token_t t = get_token(p);
+  if (t.type == TOKEN_IN_REDIRECT) {
+    token_t t = get_token(p);
+    if (t.type == TOKEN_WORD) {
+      add_infile(p, t);
+      return 1;
+    }
+    return 0;
+  }
+  putback_token(p, t);
+  return 1;
+}
+
+int parse_redirection_double_prime(parser_t *p) {
+  token_t t = get_token(p);
+  if (t.type == TOKEN_OUT_REDIRECT) {
+    token_t t = get_token(p);
+    if (t.type == TOKEN_WORD) {
+      add_outfile(p, t);
+      return 1;
+    }
+    return 0;
+  }
+  putback_token(p, t);
+  return 1;
 }
 
 int parse_simple_command(parser_t *p) {
